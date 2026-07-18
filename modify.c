@@ -1,142 +1,172 @@
+/*
+ *=========================================================
+ *  Project : Student Record Management System
+ *  File    : modify.c
+ *  Author  : Prabhu
+ *=========================================================
+ */
+
 #include "header.h"
 
-// Function to modify a record based on roll number, name, or percentage
-void modify_record(SDB **ptr) {
-	if (*ptr == NULL) {
-        printf("\n\tNo records to modify.\n");
+/*---------------------------------------------------------
+                Modify Student Record
+---------------------------------------------------------*/
+void modify_record(SDB **head)
+{
+    char choice;
+
+    if (*head == NULL)
+    {
+        printf("\nNo Records Available.\n");
         return;
     }
-    char option;
 
-    display_modify_menu();
-    scanf(" %c", &option);
-    option = tolower(option);
+    while (1)
+    {
+        display_modify_menu();
 
-    switch (option) {
-        case 'r':
-            modify_roll_number(ptr);
-            break;
-        case 'n':
-            modify_name(*ptr);
-            modify_roll_number(ptr);
-            break;
-        case 'p':
-            modify_percentage(*ptr);
-            modify_roll_number(ptr);
-            break;
-        default:
-            printf("Invalid option.\n");
-            break;
+        scanf(" %c", &choice);
+        choice = tolower(choice);
+
+        switch (choice)
+        {
+            case 'r':
+                modify_by_rollno(*head);
+                return;
+
+            case 'n':
+                modify_by_name(*head);
+                return;
+
+            case 'b':
+                return;
+
+            default:
+                printf("\nInvalid Choice! Please Try Again.\n");
+        }
     }
 }
 
-// Function to modify a record by name
-void modify_name(SDB *ptr) {
-    char input_name[50];  // Increased size for longer names
-    printf("\n\tEnter the name: ");
-    scanf(" %[^\n]", input_name);
-
-    // Convert input name to lowercase for case-insensitive comparison
-    for (int i = 0; input_name[i]; i++) {
-        input_name[i] = tolower(input_name[i]);
-    }
-
-    printf("\t+---------+-----------------------+-------------+\n");
-    printf("\t| Roll.No | Name                  | Percentage  |\n");
-    printf("\t+---------+-----------------------+-------------+\n");
-
-    SDB *current = ptr;
-    while (current != NULL) {
-        char temp_name[50];  // Increased size for longer names
-        strcpy(temp_name, current->name);
-        for (int i = 0; temp_name[i]; i++) {
-            temp_name[i] = tolower(temp_name[i]);
-        }
-
-        if (strcmp(temp_name, input_name) == 0) {
-            printf("\t| %-7d | %-21s | %-11.2f |\n", current->rollno, current->name, current->percentage);
-            printf("\t+---------+-----------------------+-------------+\n");
-        }
-        current = current->next;
-    }
-
-    sleep(1);
-}
-
-// Function to modify a record by percentage
-void modify_percentage(SDB *ptr) {
-    float input_percentage;
-    printf("\n\tEnter the percentage: ");
-    scanf(" %f", &input_percentage);  // Changed to float for precision
-
-    printf("\t+---------+-----------------------+-------------+\n");
-    printf("\t| Roll.No | Name                  | Percentage  |\n");
-    printf("\t+---------+-----------------------+-------------+\n");
-
-    SDB *current = ptr;
-    while (current != NULL) {
-        if (input_percentage == current->percentage) {
-            printf("\t| %-7d | %-21s | %-11.2f |\n", current->rollno, current->name, current->percentage);
-            printf("\t+---------+-----------------------+-------------+\n");
-        }
-        current = current->next;
-    }
-
-    sleep(1);
-}
-
-void modify_roll_number(SDB **ptr) {
+/*---------------------------------------------------------
+            Modify by Roll Number
+---------------------------------------------------------*/
+void modify_by_rollno(SDB *head)
+{
     int rollno;
-    float percentage;
-    char option, name[50];  // Increased size for longer names
+    SDB *record;
 
-    printf("\n\tEnter the Roll No: ");
+    printf("\nEnter Roll Number : ");
     scanf("%d", &rollno);
 
-    SDB *current = *ptr;
+    record = search_by_rollno(head, rollno);
 
-    while (current != NULL && current->rollno != rollno) {
-        current = current->next;
+    if (record == NULL)
+    {
+        printf("\nRecord Not Found.\n");
+        return;
     }
 
-    if (current != NULL) {
-        while (1) {
-            display_modify_options_menu();
-            scanf(" %c", &option);
-            option = tolower(option);
+    modify_record_options(record);
+}
 
-            switch (option) {
-                case 'n':
-                    printf("Enter the new name: ");
-                    scanf(" %[^\n]", name);
-                    strcpy(current->name, name);
-                    printf("Name modified successfully.\n");
-                    break;
+/*---------------------------------------------------------
+            Modify by Student Name
+---------------------------------------------------------*/
+void modify_by_name(SDB *head)
+{
+    char name[NAME_SIZE];
+    SDB *record;
 
-                case 'p':
-                    printf("Enter the new percentage: ");
-                    scanf("%f", &percentage);
-                    current->percentage = percentage;
-                    printf("Percentage modified successfully.\n");
-                    break;
+    printf("\nEnter Student Name : ");
+    scanf("%49s", name);
 
-                case 'b':
-                    printf("Enter the new name: ");
-                    scanf(" %[^\n]", name);
-                    strcpy(current->name, name);
-                    printf("Enter the new percentage: ");
-                    scanf("%f", &percentage);
-                    current->percentage = percentage;
-                    printf("Name and percentage modified successfully.\n");
-                    break;
+    record = search_by_name(head, name);
 
-                default:
-                    printf("Invalid option. Please choose again.\n");
-                    continue;  // Go back to the start of the loop
+    if (record == NULL)
+    {
+        printf("\nRecord Not Found.\n");
+        return;
+    }
+
+    modify_record_options(record);
+}
+
+/*---------------------------------------------------------
+            Modify Record Options
+---------------------------------------------------------*/
+void modify_record_options(SDB *record)
+{
+    char choice;
+    char confirm;
+
+    char new_name[NAME_SIZE];
+    float new_percentage;
+
+    printf("\n=====================================\n");
+    printf("         STUDENT RECORD FOUND\n");
+    printf("=====================================\n");
+    printf("Roll Number : %d\n", record->rollno);
+    printf("Name        : %s\n", record->name);
+    printf("Percentage  : %.2f\n", record->percentage);
+    printf("=====================================\n");
+
+    display_modify_options_menu();
+
+    scanf(" %c", &choice);
+    choice = tolower(choice);
+
+    switch (choice)
+    {
+        case 'n':
+
+            printf("\nEnter New Name : ");
+            scanf("%49s", new_name);
+
+            printf("Save Changes? (Y/N) : ");
+            scanf(" %c", &confirm);
+
+            if (tolower(confirm) == 'y')
+            {
+                strcpy(record->name, new_name);
+                printf("\nName Updated Successfully.\n");
             }
-            break;  // Exit after successful modification
-        }
-    } else {
-        printf("Roll No: %d not found!\n", rollno);
+            else
+            {
+                printf("\nModification Cancelled.\n");
+            }
+
+            break;
+
+        case 'p':
+
+            printf("\nEnter New Percentage : ");
+            scanf("%f", &new_percentage);
+
+            if (new_percentage < 0 || new_percentage > 100)
+            {
+                printf("\nInvalid Percentage.\n");
+                return;
+            }
+
+            printf("Save Changes? (Y/N) : ");
+            scanf(" %c", &confirm);
+
+            if (tolower(confirm) == 'y')
+            {
+                record->percentage = new_percentage;
+                printf("\nPercentage Updated Successfully.\n");
+            }
+            else
+            {
+                printf("\nModification Cancelled.\n");
+            }
+
+            break;
+
+        case 'b':
+            return;
+
+        default:
+            printf("\nInvalid Choice.\n");
     }
 }

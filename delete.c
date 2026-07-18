@@ -1,137 +1,162 @@
+/*
+ *=========================================================
+ *  Project : Student Record Management System
+ *  File    : delete.c
+ *  Author  : Prabhu
+ *=========================================================
+ */
+
 #include "header.h"
 
-// Function to delete a record by roll number or name
-void delete_record(SDB **ptr) {
-    if (*ptr == NULL) {
-        printf("No more data to delete.\n");
-        return;  // Exit if there are no records
-    }
+/*---------------------------------------------------------
+            Delete Student Record
+---------------------------------------------------------*/
+void delete_record(SDB **head)
+{
+    char choice;
 
-    char option;
-    display_delete_menu();
-    scanf(" %c", &option);
-    option = tolower(option);
-
-    switch (option) {
-        case 'r':
-            delete_record_by_roll_number(ptr);
-            break;
-        case 'n':
-            delete_record_by_name(*ptr);
-            break;
-        default:
-            printf("Invalid option.\n");
-            break;
-    }
-}
-
-// Function to delete all records in the linked list
-void delete_all_records(SDB **ptr) {
-    if (*ptr == NULL) {
-        printf("No records to delete. The list is already empty.\n");
+    if (*head == NULL)
+    {
+        printf("\nNo Records Available.\n");
         return;
     }
 
-    SDB *current = *ptr; // Pointer to traverse the list
-    SDB *nextNode = NULL; // Pointer to hold the next node
+    while (1)
+    {
+        display_delete_menu();
 
-    // Traverse the list and free each node
-    while (current != NULL) {
-        usleep(500); // Optional delay for better visibility during deletion
-        nextNode = current->next; // Save the next node
-        printf("Deleting record with Roll.No: %d\n", current->rollno);
-        free(current); // Free the current node
-        current = nextNode; // Move to the next node
+        scanf(" %c", &choice);
+        choice = tolower(choice);
+
+        switch (choice)
+        {
+            case 'r':
+                delete_record_by_rollno(head);
+                return;
+
+            case 'n':
+                delete_record_by_name(head);
+                return;
+
+            case 'b':
+                return;
+
+            default:
+                printf("\nInvalid Choice! Please Try Again.\n");
+        }
     }
-
-    // After all nodes are deleted, set the head to NULL
-    *ptr = NULL;
-    printf("All records have been deleted successfully.\n");
 }
 
-// Function to delete a record by name
-void delete_record_by_name(SDB *ptr) {
-    char input_name[50];  // Increased size for longer names
-    printf("\n\tEnter the name: ");
-    scanf(" %[^\n]", input_name); // Read until newline
-
-    // Convert input name to lowercase for case-insensitive comparison
-    for (int i = 0; input_name[i]; i++) {
-        input_name[i] = tolower(input_name[i]);
-    }
-
-    printf("\n");
-    printf("\t+---------+-----------------------+-------------+\n");
-    printf("\t| Roll.No | Name                  | Percentage  |\n");
-    printf("\t+---------+-----------------------+-------------+\n");
-    int found = 0;  // Flag to check if any records are found
-
-    SDB *current = ptr;
-    while (current != NULL) {
-        // Convert the name in the list to lowercase for comparison
-        char temp_name[50];
-        strcpy(temp_name, current->name);
-        for (int i = 0; temp_name[i]; i++) {
-            temp_name[i] = tolower(temp_name[i]);
-        }
-
-        // Compare names
-        if (strcmp(temp_name, input_name) == 0) {
-            printf("\t| %-7d | %-21s | %-11.2f |\n", current->rollno, current->name, current->percentage);
-            found = 1;  // Set flag if a match is found
-        }
-        current = current->next; // Move to the next record
-    }
-    printf("\t+---------+-----------------------+-------------+\n");
-
-    if (!found) {
-        printf("No records found with the name: %s\n", input_name);
-    }
-
-    // Continue to roll number deletion
-    delete_record_by_roll_number(&ptr);
-}
-
-// Function to delete a record by roll number
-void delete_record_by_roll_number(SDB **ptr) {
+/*---------------------------------------------------------
+        Delete Record by Roll Number
+---------------------------------------------------------*/
+void delete_record_by_rollno(SDB **head)
+{
     int rollno;
-    printf("\n\tEnter the Roll No: ");
+    char confirm;
+
+    SDB *temp = *head;
+    SDB *prev = NULL;
+
+    printf("\nEnter Roll Number : ");
     scanf("%d", &rollno);
 
-    SDB *current = *ptr;
-    SDB *previous = NULL;
+    while (temp != NULL)
+    {
+        if (temp->rollno == rollno)
+        {
+            printf("\n=====================================\n");
+            printf("        STUDENT RECORD FOUND\n");
+            printf("=====================================\n");
+            printf("Roll Number : %d\n", temp->rollno);
+            printf("Name        : %s\n", temp->name);
+            printf("Percentage  : %.2f\n", temp->percentage);
+            printf("=====================================\n");
 
-    // Search for the record with the matching roll number
-    while (current != NULL && current->rollno != rollno) {
-        previous = current;
-        current = current->next;
-    }
+            printf("Delete this record? (Y/N) : ");
+            scanf(" %c", &confirm);
 
-    // If the record is found
-    if (current != NULL) {
-        if (previous == NULL) {
-            // Deleting the first node (head)
-            *ptr = current->next;
-        } else {
-            // Deleting a node in the middle or end
-            previous->next = current->next;
+            confirm = tolower(confirm);
+
+            if (confirm == 'y')
+            {
+                if (prev == NULL)
+                    *head = temp->next;
+                else
+                    prev->next = temp->next;
+
+                free(temp);
+
+                printf("\nRecord Deleted Successfully.\n");
+            }
+            else
+            {
+                printf("\nDeletion Cancelled.\n");
+            }
+
+            return;
         }
 
-        free(current);
-        usleep(500);
-        printf("Roll No: %d deleted successfully.\n", rollno);
-
-        // Adjust roll numbers for the remaining records
-        SDB *temp = previous ? previous->next : *ptr;
-        while (temp != NULL) {
-            temp->rollno -= 1;
-            temp = temp->next;
-        }
-    } else {
-        usleep(500);
-        printf("Roll No: %d not found!\n", rollno);
+        prev = temp;
+        temp = temp->next;
     }
 
-    sleep(1);
+    printf("\nRoll Number %d Not Found.\n", rollno);
 }
 
+/*---------------------------------------------------------
+        Delete Record by Student Name
+---------------------------------------------------------*/
+void delete_record_by_name(SDB **head)
+{
+    char name[NAME_SIZE];
+    char confirm;
+
+    SDB *temp = *head;
+    SDB *prev = NULL;
+
+    printf("\nEnter Student Name : ");
+    scanf("%49s", name);
+
+    while (temp != NULL)
+    {
+        if (strcasecmp(temp->name, name) == 0)
+        {
+            printf("\n=====================================\n");
+            printf("        STUDENT RECORD FOUND\n");
+            printf("=====================================\n");
+            printf("Roll Number : %d\n", temp->rollno);
+            printf("Name        : %s\n", temp->name);
+            printf("Percentage  : %.2f\n", temp->percentage);
+            printf("=====================================\n");
+
+            printf("Delete this record? (Y/N) : ");
+            scanf(" %c", &confirm);
+
+            confirm = tolower(confirm);
+
+            if (confirm == 'y')
+            {
+                if (prev == NULL)
+                    *head = temp->next;
+                else
+                    prev->next = temp->next;
+
+                free(temp);
+
+                printf("\nRecord Deleted Successfully.\n");
+            }
+            else
+            {
+                printf("\nDeletion Cancelled.\n");
+            }
+
+            return;
+        }
+
+        prev = temp;
+        temp = temp->next;
+    }
+
+    printf("\nStudent \"%s\" Not Found.\n", name);
+}

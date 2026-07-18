@@ -1,15 +1,37 @@
-outfile:main.o add.o modify.o show.o delete.o save.o
-	cc main.c add.c modify.c show.c delete.c save.c -o outfile
+#=========================================================
+#  Project : Student Record Management System
+#  Author  : Prabhu
+#=========================================================
 
-main.o : main.c
-	cc -c main.c
-add.o : add.c
-	cc -c add.c
-modify.o : modify.c
-	cc -c modify.c
-show.o : show.c
-	cc -c show.c
-delete.o : delete.c
-	cc -c delete.c
-save.o : save.c
-	cc -c save.c
+CC      = gcc
+CFLAGS  = -Wall -Wextra -g
+TARGET  = student_db
+
+SRC = main.c \
+      menu.c \
+      utils.c \
+      file.c \
+      add.c \
+      delete.c \
+      modify.c \
+      display.c \
+      sort.c \
+      reverse.c
+
+OBJ = $(SRC:.c=.o)
+
+all: $(TARGET)
+
+$(TARGET): $(OBJ)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJ)
+
+%.o: %.c header.h
+	$(CC) $(CFLAGS) -c $<
+
+run: $(TARGET)
+	./$(TARGET)
+
+clean:
+	rm -f *.o $(TARGET)
+
+rebuild: clean all

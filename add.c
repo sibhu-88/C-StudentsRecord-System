@@ -1,48 +1,102 @@
+/*
+ *=========================================================
+ *  Project : Student Record Management System
+ *  File    : add.c
+ *  Author  : Prabhu
+ *=========================================================
+ */
+
 #include "header.h"
 
-// Function to add a new record to the linked list
-void add_new_record(SDB **ptr) {
-    char choice;
+/*---------------------------------------------------------
+            Add New Student Record
+---------------------------------------------------------*/
+void add_new_record(SDB **head)
+{
+    SDB *newnode;
+    SDB *temp;
 
-    do {
-        // Allocate memory for a new record
-        SDB *newRecord = (SDB *)malloc(sizeof(SDB));
-        if (newRecord == NULL) {
-            fprintf(stderr, "Error: Memory allocation failed.\n");
-            return; // Exit if memory allocation fails
+    newnode = (SDB *)malloc(sizeof(SDB));
+
+    if (newnode == NULL)
+    {
+        printf("\nMemory Allocation Failed.\n");
+        return;
+    }
+
+    /*--------------- Auto Generate Roll Number ----------------*/
+
+    newnode->rollno = generate_rollno(*head);
+
+    printf("\nGenerated Roll Number : %d\n", newnode->rollno);
+
+    /*--------------- Student Name ----------------*/
+
+    while (1)
+    {
+        printf("Enter Student Name : ");
+
+        scanf("%49s", newnode->name);
+
+        if (strlen(newnode->name) == 0)
+        {
+            printf("Name cannot be empty.\n");
+            continue;
         }
 
-        // Get user input for the new record
-        printf("\tEnter Your Name: ");
-        scanf(" %[^\n]", newRecord->name);
+        break;
+    }
 
-        printf("\tEnter Your Percentage: ");
-        while (scanf("%f", &newRecord->percentage) != 1 || newRecord->percentage < 0 || newRecord->percentage > 100) {
-            printf("\tInvalid input. Please enter a valid percentage (0-100): ");
-            while(getchar() != '\n'); // Clear the invalid input
+    /*--------------- Percentage ----------------*/
+
+    while (1)
+    {
+        printf("Enter Percentage : ");
+
+        if (scanf("%f", &newnode->percentage) != 1)
+        {
+            printf("Invalid Percentage.\n");
+
+            while (getchar() != '\n');
+
+            continue;
         }
 
-        // If the list is empty, initialize the first record
-        if (*ptr == NULL) {
-            newRecord->rollno = 1; // Set roll number for the first record
-            newRecord->next = NULL; // No next record
-            *ptr = newRecord; // Update the head pointer
-        } else {
-            // Traverse to the end of the list to add the new record
-            SDB *last = *ptr;
-            while (last->next != NULL) {
-                last = last->next; // Move to the next record
-            }
-
-            // Assign roll number and link the new record
-            newRecord->rollno = last->rollno + 1; // Increment roll number
-            newRecord->next = NULL; // New record will be the last
-            last->next = newRecord; // Link the last record to the new one
+        if (newnode->percentage < 0.0 || newnode->percentage > 100.0)
+        {
+            printf("Percentage must be between 0 and 100.\n");
+            continue;
         }
 
-        // Ask user if they want to add another record
-        printf("\tDo you want to add another record? (y/n): ");
-        scanf(" %c", &choice);
-    } while (choice == 'y' || choice == 'Y'); // Continue if 'y' or 'Y' is entered
+        break;
+    }
+
+    newnode->next = NULL;
+
+    /*--------------- Insert Record ----------------*/
+
+    if (*head == NULL)
+    {
+        *head = newnode;
+    }
+    else
+    {
+        temp = *head;
+
+        while (temp->next != NULL)
+        {
+            temp = temp->next;
+        }
+
+        temp->next = newnode;
+    }
+
+    printf(" Student Record Added Successfully\n");
+    
+    // printf("\n=========================================\n");
+    // printf("=========================================\n");
+    // printf(" Roll Number : %d\n", newnode->rollno);
+    // printf(" Name        : %s\n", newnode->name);
+    // printf(" Percentage  : %.2f\n", newnode->percentage);
+    // printf("=========================================\n");
 }
-
